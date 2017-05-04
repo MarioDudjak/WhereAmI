@@ -3,23 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/paddinglayout">
+    android:padding="@dimen/paddinglayout"
+    android:background="@color/backgroundColor">
     <Button
         android:id="@+id/bCaptureImage"
         android:layout_width="match_parent"
         android:text="Capture image"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/backgroundColor"
         android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/tvGeoLocation"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
+        android:textColor="@color/colorPrimary"
         android:text="@string/geoNumberLocation"
         android:layout_below="@id/bCaptureImage"
         android:layout_height="wrap_content" />
     <TextView
         android:id="@+id/tvLocation"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:text="@string/geoLocation"
-        android:layout_below="@id/tvGeoLocation"
+        android:layout_below="@id/bCaptureImage"
+        android:textColor="@color/colorPrimary"
+        android:textAlignment="textEnd"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@id/tvGeoLocation"
         android:layout_height="wrap_content" />
     <fragment
         android:id="@+id/fGoogleMap"

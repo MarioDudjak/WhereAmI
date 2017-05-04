@@ -1,18 +1,29 @@
 package hr.ferit.mdudjak.whereami;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationListener;
 import android.media.AudioManager;
+import android.media.RingtoneManager;
 import android.media.SoundPool;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,25 +40,37 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.Manifest;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,View.OnClickListener {
     private static final int REQUEST_LOCATION_PERMISSION = 10;
     TextView tvLocationDisplay;
     TextView tvLocation;
+    Button bCaptureImage;
     LocationListener mLocationListener;
     LocationManager mLocationManager;
+    String mCurrentPhotoPath;
     GoogleMap mGoogleMap;
+    StringBuilder stringBuilder;
+    public static final String MSG_KEY = "message";
     MapFragment mMapFragment;
     HashMap<Integer, Integer> mSoundMap = new HashMap<>();
     SoundPool mSoundPool;
+    Uri photoURI;
+    static final int REQUEST_TAKE_PHOTO = 1;
     boolean mLoaded = false;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
     private GoogleMap.OnMapClickListener mCustomOnMapClickListener;
 
     @Override
@@ -58,6 +81,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.mLocationListener = new SimpleLocationListener();
         this.setUpUi();
         this.loadSounds();
+    }
+
+    private void sendNotification() {
+        String msgText = String.valueOf(stringBuilder);
+// We need a pending intent to kick off when the notification is pressed:
+        Intent notificationIntent = new Intent(Intent.ACTION_VIEW, photoURI);
+        notificationIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        PendingIntent notificationPendingIntent = PendingIntent.getActivity(
+                this,0,notificationIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+// Compat builder should be used to create the notification when working
+// with api level 15 and lower
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
+        notificationBuilder.setAutoCancel(true)
+                .setContentTitle("Where am I?")
+                .setContentText(msgText)
+                .setSmallIcon(android.R.drawable.ic_dialog_email)
+                .setContentIntent(notificationPendingIntent)
+                .setLights(Color.BLUE, 2000, 1000)
+                .setVibrate(new long[]{1000,1000,1000,1000,1000})
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+        Notification notification = notificationBuilder.build();
+// When you have a notification, call notify on the notification manager object
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(0,notification);
+// When the notification is sent, this activity is no longer neccessary
+        this.finish();
     }
 
     @Override
@@ -111,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.mMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fGoogleMap);
         this.mMapFragment.getMapAsync(this);
         this.tvLocation= (TextView) this.findViewById(R.id.tvLocation);
+        this.bCaptureImage= (Button) this.findViewById(R.id.bCaptureImage);
+        this.bCaptureImage.setOnClickListener(this);
         this.mCustomOnMapClickListener = new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -125,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         };
     }
     private void updateLocationDisplay(Location location){
-        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder = new StringBuilder();
         stringBuilder.append("Lat: ").append(location.getLatitude()).append("\n");
         stringBuilder.append("Lon: ").append(location.getLongitude());
         tvLocationDisplay.setText(stringBuilder.toString());
@@ -244,6 +296,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     void playSound(int selectedSound){
         int soundID = this.mSoundMap.get(selectedSound);
         this.mSoundPool.play(soundID, 1,1,1,0,1f);
+    }
+
+    @Override
+    public void onClick(View v) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+
+        }
+    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        sendNotification();
+    }
+        private File createImageFile() throws IOException {
+        String imageFileName = "JPEG_" + stringBuilder + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
     private class SimpleLocationListener implements LocationListener{
