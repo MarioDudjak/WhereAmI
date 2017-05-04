@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/paddinglayout">
+    <Button
+        android:id="@+id/bCaptureImage"
+        android:layout_width="match_parent"
+        android:text="Capture image"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/tvGeoLocation"
+        android:layout_width="match_parent"
+        android:text="@string/geoNumberLocation"
+        android:layout_below="@id/bCaptureImage"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/tvLocation"
+        android:layout_width="match_parent"
+        android:text="@string/geoLocation"
+        android:layout_below="@id/tvGeoLocation"
+        android:layout_height="wrap_content" />
+    <fragment
+        android:id="@+id/fGoogleMap"
+        android:name="com.google.android.gms.maps.MapFragment"
+        android:layout_width="match_parent"
+        android:layout_below="@+id/tvLocation"
+        android:layout_height="match_parent"
+        tools:layout="@layout/activity_main" />
+</RelativeLayout>

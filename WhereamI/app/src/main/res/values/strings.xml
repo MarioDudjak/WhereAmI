@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Where am I?</string>
+    <string name="geoNumberLocation">Your GPS coordinates:</string>
+    <string name="geoLocation">Your location:</string>
+</resources>
