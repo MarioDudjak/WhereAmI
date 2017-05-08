@@ -19,8 +19,8 @@ Fragment is used for working with map.
 *Working with maps
 
 Google API for Maps is used for working with maps. 
-It was first neccessary to register for developer key which is than defined in app's manifest.
-And also before using maps, it was neccessary to add external play-services library.
+It was first necessary to register for developer key which is than defined in app's manifest.
+And also before using maps, it was necessary to add external play-services library.
 In the layout file a fragment is set which is later used for representing a map, and it is special type of fragment - the one in a gms.map namespace.
 In the app's MainActivity a fragment is retrieved and than a listener for GoogleMap object is set.
 Map retrieving is asynchronous and a callback method onMapReady is used through interface which Activity implements.
@@ -42,7 +42,7 @@ Source: https://loomen.carnet.hr/pluginfile.php/787643/mod_resource/content/2/LV
 
 *Working with Geocoder 
 
-Geocoding is done using a Geocoder class. When using Geocoder class it is neccessary to check if the class is defined in a system. 
+Geocoding is done using a Geocoder class. When using Geocoder class it is necessary to check if the class is defined in a system. 
 If it is, than it is possible to instantiate object of Geocoder class and forward appropriate location to that object.
 Transforming GPS coordinates to location is done on a remote server and the permission for accessing Internet is required.
 Decoding GPS coordinates for a result returns a list of objects of Address class, and every object contains information about that location such as: country, city, street address...
